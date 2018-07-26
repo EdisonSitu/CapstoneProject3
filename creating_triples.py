@@ -26,5 +26,5 @@ def create_triples (k=1):
         """
     caption_ids = np.tile([data["annotations"][i]["id"] for i in range(len(data["annotations"]))], (k, 1)).T
     image_ids = np.tile([data["annotations"][i]["image_id"] for i in range(len(data["annotations"]))], (k, 1)).T
-    triples_array = np.stack((caption_ids, image_ids, np.random.choice(image_ids[0], size=(414113, k))), axis=-1)
+    triples_array = np.stack((caption_ids, image_ids, np.random.choice([data["annotations"][i]["image_id"] for i in range(len(data["annotations"]))], size=(414113, k))), axis=-1)
     return triples_array
