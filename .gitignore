@@ -1,2 +1,5 @@
 captions_train2014.json
 resnet18_features_train.pkl
+__pycache__/*
+**/*.ipynb
+**/*.DS_Store
