@@ -1,3 +1,5 @@
+from mynn.layers.dense import dense
+from mynn.initializers.glorot_normal import glorot_normal
 class Model:
     def __init__(self):
         self.dense = dense(512, 50, weight_initializer= glorot_normal)

@@ -1,3 +1,5 @@
+from torch import margin_ranking_loss
+
 def loss(tuple_data, margin):
     '''
     Determines the loss of the data (caption compared to good vs caption compared to bad). Returns max(0, margin - good + bad)
@@ -17,9 +19,10 @@ def loss(tuple_data, margin):
         An integer that represents the loss
     '''
     text, good_image, bad_image = tuple_data
-    x1 = np.dot(text, good_image)/(np.abs(text)*np.abs(good_image))
-    x2 = np.dot(text, bad_image)/(np.abs(text)*np.abs(bad_image))
-    return margin_ranking_loss(x1, x2, 1, margin)
+    x1 = mg.dot(text, good_image)/(mg.abs(text)*mg.abs(good_image))
+    x2 = mg.dot(text, bad_image)/(mg.abs(text)*mg.abs(bad_image))
+    loss_obj =  margin_ranking_loss(margin = margin, reduce= False)
+    return loss_obj(x1, x2, y)
 def accuracy(loss_batch):
     '''
     Determines the accuracy of a batch of losses
