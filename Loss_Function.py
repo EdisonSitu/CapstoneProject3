@@ -17,8 +17,8 @@ def loss(tuple_data, margin):
         An integer that represents the loss
     '''
     text, good_image, bad_image = tuple_data
-    x1 = np.dot(text, good_image)
-    x2 = np.dot(text, bad_image)
+    x1 = np.dot(text, good_image)/(np.abs(text)*np.abs(good_image))
+    x2 = np.dot(text, bad_image)/(np.abs(text)*np.abs(bad_image))
     return margin_ranking_loss(x1, x2, 1, margin)
 def accuracy(loss_batch):
     '''
