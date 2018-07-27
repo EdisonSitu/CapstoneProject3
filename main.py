@@ -7,10 +7,14 @@ from mynn.initializers.glorot_normal import glorot_normal
 from torch import margin_ranking_loss
 from collections import Counter
 
+model = Model()
+optim = Adam(model.parameters)
+
 def embedding_caption():
     return e_cap #dictionary
 def embedding_images():
     return e_img, model
+
 def training(list_of_data, model):
 
     arr_of_data = np.array(list_of_data)
@@ -31,16 +35,19 @@ def training(list_of_data, model):
             good_image = normalize(good_image)
             bad_image = model(batch[2])
             bad_image = normalize(image)
-            loss = loss(text, good_image, bad_image, 0)
+            loss = loss(text, good_image, bad_image, 0)#pick a loss later
+            loss.backwards()
             acc = accuracy(loss)
-            optim
-            loss.null_gradient
+            optim.step()
+            loss.null_gradient()
             plotter.set_train_batch({"loss" : loss.item(),
                                      "accuracy" : acc},
                                      batch_size=batch_size)
+
         # this tells liveplot to plot the epoch-level train/test statistics :)
         plotter.plot_train_epoch()
         plotter.plot_test_epoch()
+
 def normalize(data):
     mag = mg.sqrt(mg.sum(data**2))
     return data/mag
