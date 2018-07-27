@@ -1,7 +1,5 @@
 def display(image_ids):
-    urls
-    for i in image data
-        append.dict[askfhasknlsDFN]get coco_url
-    fig, ax = plt.subplot(rows = len(urls))
-    for i, link in enumerate(urls)
-        ax.plot[i](link)
+    fig, ax = plt.subplot(colm = len(urls))
+    for id in image_ids
+        link = dictionarything[id]["coco_url"]
+        ax.plot[i](download link here)
