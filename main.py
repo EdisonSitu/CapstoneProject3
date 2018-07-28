@@ -1,45 +1,78 @@
-import creating_triples
-import Loss_Function
-import Model
+import creating_triples as ct
+import Loss_Function as lf
+from Model import Model
+import pickle
+from liveplot import create_plot
 
-from mynn.optimizers.adam import Adam
+from torch.optim.adam import Adam
 from mynn.initializers.glorot_normal import glorot_normal
-from torch import margin_ranking_loss
+from torch import margin_ranking_loss, sum, sqrt
 from collections import Counter
+import numpy as np
+import mygrad as mg
 
-model = Model()
-optim = Adam(model.parameters)
+import pickle
 
 def embedding_caption():
-    return e_cap #dictionary
-def embedding_images():
-    return e_img, model
+        return np.load("embeddings.npy").item()
 
-def training(list_of_data, model):
+def getFeatures():
+    with open("resnet18_features_train.pkl", mode="rb") as opened_file:
+        rf =  pickle.load(opened_file)
+    return rf
 
-    arr_of_data = np.array(list_of_data)
+def preTraining():
+    '''
+    Creates the model, data and optimizor for training
+
+    -----
+    Returns
+    -----
+    data - tuple with caption_ids, good_image and bad_image
+    optimizer - Adam optimizer from  mynn
+    model - traiing model
+    '''
+    model = Model()
+    data = ct.create_triples(10).reshape(-1,3)
+    optim = Adam(model.parameters())
+    return data, optim, model
+
+def training():
+
+    plotter, fig, ax = create_plot(["loss", "accuracy"], refresh=5)
+    arr_of_data = np.array(data)
     batch_size = 100
 
     for epoch_cnt in range(10):
-        idxs = np.arange(len(list_of_data))  # -> array([0, 1, ..., 9999])
+        idxs = np.arange(len(data))  # -> array([0, 1, ..., 9999])
         np.random.shuffle(idxs)
 
-        for batch_cnt in range(0, len(list_of_data)//batch_size):
+        for batch_cnt in range(0, len(data)//batch_size):
             batch_indices = idxs[batch_cnt*batch_size : (batch_cnt + 1)*batch_size]
-            batch = arr_of_data[batch_indices]  # random batch of our training data
+            batch = data[batch_indices]  # random batch of our training data
             text = []
-            for tuple_of_data in arr_of_data:
-                text.append(dictionary[tuple_of_data[0]]) #whatever dictionary is named
-            text = normalize(mg.Tensor(text))
-            good_image = model(batch[1])
-            good_image = normalize(good_image)
-            bad_image = model(batch[2])
-            bad_image = normalize(image)
-            loss = loss(text, good_image, bad_image, 0)#pick a loss later
-            loss.backwards()
-            acc = accuracy(loss)
+            good_image = []
+            bad_image = []
+            for tuple_of_data in batch:
+                try:
+                    embedded_captions[tuple_of_data[0]]
+                    rf[tuple_of_data[1]]
+                    rf[tuple_of_data[2]]
+                except KeyError:
+                    continue
+                text.append(nn.Tensor(embedded_captions[tuple_of_data[0]]).view(1,-1))
+                good_image.append(model(rf[tuple_of_data[1]]).data.view(-1,1))
+                bad_image.append(model(rf[tuple_of_data[2]].data.view(-1,1)))
+            text = normalize(Tensor(text))
+            good_image = normalize(Tensor(good_image))
+            bad_image = normalize(Tensor(bad_image))
+            loss = lf.loss((text, good_image, bad_image), 0)#pick a loss later
+            loss.backward()
+            acc = lf.accuracy(loss)
             optim.step()
-            loss.null_gradient()
+            loss.zero_grad()
+            print(loss)
+            print(acc)
             plotter.set_train_batch({"loss" : loss.item(),
                                      "accuracy" : acc},
                                      batch_size=batch_size)
@@ -47,9 +80,8 @@ def training(list_of_data, model):
         # this tells liveplot to plot the epoch-level train/test statistics :)
         plotter.plot_train_epoch()
         plotter.plot_test_epoch()
-
 def normalize(data):
-    mag = mg.sqrt(mg.sum(data**2))
+    mag = sqrt(sum(data**2))
     return data/mag
 def query():
     return top_images
@@ -57,3 +89,7 @@ def find_top_k():
     pass
 def display():
     pass
+
+embedded_captions = embedding_caption()
+rf = getFeatures()
+data, optim, model = preTraining()
