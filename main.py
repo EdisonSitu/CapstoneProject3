@@ -4,9 +4,11 @@ from Model import Model
 import pickle
 from liveplot import create_plot
 
+from torch import Tensor, stack
+import torch
 from torch.optim.adam import Adam
 from mynn.initializers.glorot_normal import glorot_normal
-from torch import margin_ranking_loss, sum, sqrt
+from torch import margin_ranking_loss
 from collections import Counter
 import numpy as np
 import mygrad as mg
@@ -60,28 +62,29 @@ def training():
                     rf[tuple_of_data[2]]
                 except KeyError:
                     continue
-                text.append(nn.Tensor(embedded_captions[tuple_of_data[0]]).view(1,-1))
-                good_image.append(model(rf[tuple_of_data[1]]).data.view(-1,1))
-                bad_image.append(model(rf[tuple_of_data[2]].data.view(-1,1)))
-            text = normalize(Tensor(text))
-            good_image = normalize(Tensor(good_image))
-            bad_image = normalize(Tensor(bad_image))
-            loss = lf.loss((text, good_image, bad_image), 0)#pick a loss later
+                text.append(Tensor(embedded_captions[tuple_of_data[0]]).view(1,-1), )
+                good_image.append(model(rf[tuple_of_data[1]]).view(-1,1))
+                bad_image.append(model(rf[tuple_of_data[2]]).view(-1,1))
+            text = normalize(stack(text))
+            good_image = normalize(stack(good_image))
+            bad_image = normalize(stack(bad_image))
+            loss_batch = lf.loss((text, good_image, bad_image), 0.1)#pick a loss later
+            print(loss_batch)
+            loss = torch.sum(loss_batch)
             loss.backward()
-            acc = lf.accuracy(loss)
+            acc = lf.accuracy(loss_batch)
             optim.step()
-            loss.zero_grad()
-            print(loss)
-            print(acc)
+            optim.zero_grad()
             plotter.set_train_batch({"loss" : loss.item(),
                                      "accuracy" : acc},
                                      batch_size=batch_size)
-
         # this tells liveplot to plot the epoch-level train/test statistics :)
         plotter.plot_train_epoch()
         plotter.plot_test_epoch()
 def normalize(data):
-    mag = sqrt(sum(data**2))
+    mag = torch.sqrt(torch.sum(data**2))
+    print(data.shape)
+    print(mag.shape)
     return data/mag
 def query():
     return top_images

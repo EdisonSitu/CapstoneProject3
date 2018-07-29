@@ -15,7 +15,8 @@ class Model(nn.Module):
         # it is important to call `super` here to initialize your pytorch-model
         super(Model, self).__init__()
         self.dense = nn.Linear(512, 50)
-
+        for param in self.parameters():
+            param.requires_grad = True
     def forward(self, x):
         """
         Performs a forward pass, sending a batch of data through the model.

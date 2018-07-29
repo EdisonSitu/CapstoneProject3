@@ -1,4 +1,4 @@
-from torch import margin_ranking_loss, Tensor
+from torch import margin_ranking_loss, Tensor, matmul
 import mygrad as mg
 import numpy as np
 
@@ -21,13 +21,8 @@ def loss(tuple_data, margin):
         An integer that represents the loss
     '''
     text, good_image, bad_image = tuple_data
-    print(text.shape)
-    print(good_image.shape)
-    print(bad_image.shape)
-    x1 = torch.mm(text, good_image).reshape(-1)
-    x2 = torch.mm(text, bad_image).reshape(-1)
-    print(type(x1))
-    print(type(x2))
+    x1 = matmul(text, good_image).view(-1)
+    x2 = matmul(text, bad_image).view(-1)
     return margin_ranking_loss(x1, x2, Tensor(np.ones(len(x1))), margin = margin, reduce= False)
 
 
@@ -46,4 +41,6 @@ def accuracy(loss_batch):
     -----
     The average success of the batch
     '''
-    return np.sum(np.sign(loss_batch))/len(loss_batch)
+    total = len(loss_batch)
+    incorrect =  np.sum(np.sign(loss_batch.detach().numpy()))
+    return (total - incorrect)/total
