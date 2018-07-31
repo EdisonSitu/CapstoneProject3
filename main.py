@@ -7,11 +7,9 @@ from liveplot import create_plot
 from torch import Tensor, stack
 import torch
 from torch.optim.adam import Adam
-from mynn.initializers.glorot_normal import glorot_normal
 from torch import margin_ranking_loss
 from collections import Counter
 import numpy as np
-import mygrad as mg
 
 import pickle
 
@@ -35,7 +33,7 @@ def preTraining():
     model - traiing model
     '''
     model = Model()
-    data = ct.create_triples(10).reshape(-1,3)
+    data = ct.create_triples(100).reshape(-1,3)
     optim = Adam(model.parameters())
     return data, optim, model
 
@@ -62,15 +60,15 @@ def training():
                     rf[tuple_of_data[2]]
                 except KeyError:
                     continue
-                text.append(Tensor(embedded_captions[tuple_of_data[0]]).view(1,-1), )
+                text.append(Tensor(embedded_captions[tuple_of_data[0]]).view(1,-1))
                 good_image.append(model(rf[tuple_of_data[1]]).view(-1,1))
                 bad_image.append(model(rf[tuple_of_data[2]]).view(-1,1))
             text = normalize(stack(text))
             good_image = normalize(stack(good_image))
             bad_image = normalize(stack(bad_image))
-            loss_batch = lf.loss((text, good_image, bad_image), 0.1)#pick a loss later
+            loss_batch = lf.loss((text, good_image, bad_image), 0.2)#pick a loss later
             print(loss_batch)
-            loss = torch.sum(loss_batch)
+            loss = torch.sum(loss_batch)/len(loss_batch)
             loss.backward()
             acc = lf.accuracy(loss_batch)
             optim.step()
@@ -82,9 +80,7 @@ def training():
         plotter.plot_train_epoch()
         plotter.plot_test_epoch()
 def normalize(data):
-    mag = torch.sqrt(torch.sum(data**2))
-    print(data.shape)
-    print(mag.shape)
+    mag = torch.sqrt(torch.sum(data**2, dim = 1, keepdim = True))
     return data/mag
 def query():
     return top_images
