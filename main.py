@@ -100,7 +100,8 @@ def normalize(data):
     '''
     Normalizes the data to zero - center and remove std
     '''
-    mag = torch.sqrt(torch.sum(data**2, dim = 1, keepdim = True))
+    sum = torch.sum(data**2, dim = 1, keepdim = True) + 1e-16
+    mag = torch.sqrt(sum)
     return data/mag
 
 def databasing(model, rf):
