@@ -1,4 +1,4 @@
-from torch import margin_ranking_loss, Tensor, matmul, abs
+from torch import margin_ranking_loss, Tensor, matmul
 import numpy as np
 
 def loss(tuple_data, margin):
